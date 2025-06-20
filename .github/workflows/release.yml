@@ -16,7 +16,7 @@ jobs:
         with:
           node-version: '18'
       - run: npm install -g @rocket.chat/apps-cli
-      - run: rc-apps package
+      - run: npx rc-apps package
         working-directory: ritzbitz-link
       - uses: actions/upload-artifact@v4
         with:
