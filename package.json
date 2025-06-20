@@ -1,0 +1,17 @@
+{
+  "name": "rocketchat-app",
+  "version": "1.0.0",
+  "description": "- custom urlscheme ritzbitz:// - no markdown usage like [link](link)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@rocket.chat/apps-cli": "^1.12.1",
+    "@rocket.chat/apps-engine": "^1.52.0"
+  }
+}
