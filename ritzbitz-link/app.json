@@ -1,0 +1,19 @@
+{
+    "id": "4451ca98-a67f-4fac-b088-cdecfb515e78",
+    "version": "0.0.1",
+    "requiredApiVersion": "^1.44.0",
+    "iconFile": "icon.png",
+    "author": {
+        "name": "coder",
+        "homepage": "http://example.com",
+        "support": "support@example.com"
+    },
+    "name": "Ritzbitz Link",
+    "nameSlug": "ritzbitz-link",
+    "classFile": "RitzbitzLinkApp.ts",
+    "description": "Adds links for ritzbitz:// scheme",
+    "implements": [
+        "IPostMessageSent",
+        "IPostMessageUpdated"
+    ]
+}
