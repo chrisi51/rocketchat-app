@@ -4,9 +4,9 @@
     "requiredApiVersion": "^1.44.0",
     "iconFile": "icon.png",
     "author": {
-        "name": "coder",
-        "homepage": "http://example.com",
-        "support": "support@example.com"
+        "name": "CH",
+        "homepage": "arts-others.de",
+        "support": "arts-others.de"
     },
     "name": "Ritzbitz Link",
     "nameSlug": "ritzbitz-link",

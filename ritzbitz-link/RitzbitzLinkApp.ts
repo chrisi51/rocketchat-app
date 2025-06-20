@@ -17,12 +17,17 @@ export class RitzbitzLinkApp extends App implements IPostMessageSent, IPostMessa
     }
 
     private async patchMessage(message: IMessage, read: IRead, modify: IModify): Promise<void> {
+        this.getLogger().debug('Processing message', message);
         const originalHtml: string = (message as any).html || '';
         const patchedHtml = originalHtml.replace(/(ritzbitz:\/\/[^\s<>"]+)/gi, '<a href="$1" target="_blank">$1</a>');
 
         if (patchedHtml === originalHtml || !message.id) {
+            this.getLogger().debug('Abbruch', originalHtml, '==', patchedHtml);
             return;
         }
+
+        this.getLogger().debug('Update', originalHtml, 'zu', patchedHtml);
+
 
         const appUser = await read.getUserReader().getAppUser();
         if (!appUser) {
@@ -32,6 +37,9 @@ export class RitzbitzLinkApp extends App implements IPostMessageSent, IPostMessa
         const builder = await modify.getUpdater().message(message.id, appUser);
         builder.setUpdateData({ ...(builder.getMessage() as any), html: patchedHtml }, appUser);
         await modify.getUpdater().finish(builder);
+
+        this.getLogger().debug('new Message', builder.getMessage());
+
     }
 
     public async executePostMessageSent(
@@ -41,6 +49,7 @@ export class RitzbitzLinkApp extends App implements IPostMessageSent, IPostMessa
         persistence: IPersistence,
         modify: IModify,
     ): Promise<void> {
+        this.getLogger().debug('executePostMessageSent called');
         await this.patchMessage(message, read, modify);
     }
 
@@ -51,6 +60,7 @@ export class RitzbitzLinkApp extends App implements IPostMessageSent, IPostMessa
         persistence: IPersistence,
         modify: IModify,
     ): Promise<void> {
+        this.getLogger().debug('executePostMessageUpdated called');
         await this.patchMessage(message, read, modify);
     }
 
