@@ -4,7 +4,9 @@ on:
   push:
     tags:
       - 'v*'
-
+      
+  workflow_dispatch:
+  
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -13,9 +15,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '18'
-      - run: npm install
-      - run: npm install --prefix ritzbitz-link
-      - run: npx rc-apps package
+      - run: npm install -g @rocket.chat/apps-cli
+      - run: rc-apps package
         working-directory: ritzbitz-link
       - uses: actions/upload-artifact@v4
         with:
