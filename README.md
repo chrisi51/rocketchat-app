@@ -12,5 +12,5 @@ npm install
 (cd ritzbitz-link && npx rc-apps package)
 ```
 
-The resulting archive will appear in the `dist/` folder and can be uploaded to a Rocket.Chat server.
+The resulting archive will appear in the `dist/` folder and can be uploaded to a Rocket.Chat server or attached directly to a GitHub Release.
 
