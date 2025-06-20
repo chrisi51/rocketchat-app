@@ -9,7 +9,7 @@ Install the dependencies and package the app into a `.zip` file:
 ```bash
 npm install
 (cd ritzbitz-link && npm install)
-npx rc-apps package -r ./ritzbitz-link
+(cd ritzbitz-link && npx rc-apps package)
 ```
 
 The resulting archive will appear in the `dist/` folder and can be uploaded to a Rocket.Chat server.
