@@ -9,25 +9,84 @@ import {
 } from '@rocket.chat/apps-engine/definition/accessors';
 import { App } from '@rocket.chat/apps-engine/definition/App';
 import { IAppInfo } from '@rocket.chat/apps-engine/definition/metadata';
-import { IMessage, IPostMessageSent, IPostMessageUpdated } from '@rocket.chat/apps-engine/definition/messages';
+import {
+    IMessage,
+    IPostMessageSent,
+    IPostMessageUpdated,
+} from '@rocket.chat/apps-engine/definition/messages';
 
 export class RitzbitzLinkApp extends App implements IPostMessageSent, IPostMessageUpdated {
     constructor(info: IAppInfo, logger: ILogger, accessors: IAppAccessors) {
         super(info, logger, accessors);
     }
 
+    private convertTextToNodes(text: string): Array<any> {
+        const regex = /(ritzbitz:\/\/[^\s]+)/gi;
+        const nodes = [] as Array<any>;
+        let lastIndex = 0;
+        let match: RegExpExecArray | null;
+
+        while ((match = regex.exec(text)) !== null) {
+            if (match.index > lastIndex) {
+                nodes.push({ type: 'PLAIN_TEXT', value: text.slice(lastIndex, match.index) });
+            }
+            const url = match[1];
+            nodes.push({
+                type: 'LINK',
+                value: {
+                    src: { type: 'PLAIN_TEXT', value: url },
+                    label: [{ type: 'PLAIN_TEXT', value: url }],
+                },
+            });
+            lastIndex = regex.lastIndex;
+        }
+        if (lastIndex < text.length) {
+            nodes.push({ type: 'PLAIN_TEXT', value: text.slice(lastIndex) });
+        }
+
+        return nodes;
+    }
+
+    private patchMd(md: Array<any>): boolean {
+        let changed = false;
+        md.forEach((block) => {
+            if (block.type === 'PARAGRAPH' && Array.isArray(block.value)) {
+                const newValue: Array<any> = [];
+                block.value.forEach((child: any) => {
+                    if (child.type === 'PLAIN_TEXT') {
+                        const converted = this.convertTextToNodes(child.value);
+                        if (converted.length !== 1 || converted[0].value !== child.value) {
+                            changed = true;
+                        }
+                        newValue.push(...converted);
+                    } else {
+                        newValue.push(child);
+                    }
+                });
+                if (changed) {
+                    block.value = newValue;
+                }
+            }
+        });
+        return changed;
+    }
+
     private async patchMessage(message: IMessage, read: IRead, modify: IModify): Promise<void> {
         this.getLogger().debug('Processing message', message);
-        const originalHtml: string = (message as any).html || '';
-        const patchedHtml = originalHtml.replace(/(ritzbitz:\/\/[^\s<>"]+)/gi, '<a href="$1" target="_blank">$1</a>');
+        const md: Array<any> | undefined =
+            (message as any).md || (message as any)._unmappedProperties_?.md;
 
-        if (patchedHtml === originalHtml || !message.id) {
-            this.getLogger().debug('Abbruch', originalHtml, '==', patchedHtml);
+        if (!md) {
+            this.getLogger().debug('No md field found');
             return;
         }
 
-        this.getLogger().debug('Update', originalHtml, 'zu', patchedHtml);
-
+        const mdCopy = JSON.parse(JSON.stringify(md));
+        const changed = this.patchMd(mdCopy);
+        if (!changed || !message.id) {
+            this.getLogger().debug('No ritzbitz:// link found, skipping');
+            return;
+        }
 
         const appUser = await read.getUserReader().getAppUser();
         if (!appUser) {
@@ -35,11 +94,10 @@ export class RitzbitzLinkApp extends App implements IPostMessageSent, IPostMessa
         }
 
         const builder = await modify.getUpdater().message(message.id, appUser);
-        builder.setUpdateData({ ...(builder.getMessage() as any), html: patchedHtml }, appUser);
+        builder.setUpdateData({ ...(builder.getMessage() as any), md: mdCopy }, appUser);
         await modify.getUpdater().finish(builder);
 
-        this.getLogger().debug('new Message', builder.getMessage());
-
+        this.getLogger().debug('patched message', builder.getMessage());
     }
 
     public async executePostMessageSent(
