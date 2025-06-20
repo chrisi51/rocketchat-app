@@ -73,6 +73,17 @@ export class RitzbitzLinkApp extends App implements IPostMessageSent, IPostMessa
 
     private async patchMessage(message: IMessage, read: IRead, modify: IModify): Promise<void> {
         this.getLogger().debug('Processing message', message);
+
+        const appUser = await read.getUserReader().getAppUser();
+        if (!appUser) {
+            return;
+        }
+
+        if (message.editor && (message.editor as any).id === appUser.id) {
+            this.getLogger().debug('Message was edited by the app, skipping');
+            return;
+        }
+
         const md: Array<any> | undefined =
             (message as any).md || (message as any)._unmappedProperties_?.md;
 
@@ -85,11 +96,6 @@ export class RitzbitzLinkApp extends App implements IPostMessageSent, IPostMessa
         const changed = this.patchMd(mdCopy);
         if (!changed || !message.id) {
             this.getLogger().debug('No ritzbitz:// link found, skipping');
-            return;
-        }
-
-        const appUser = await read.getUserReader().getAppUser();
-        if (!appUser) {
             return;
         }
 
