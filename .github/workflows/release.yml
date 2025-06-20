@@ -20,7 +20,7 @@ jobs:
       - run: npm install -g @rocket.chat/apps-cli
       - run: npx rc-apps package
         working-directory: ritzbitz-link
-      - run: rm ritzbitz-link/dist/*.zip
+      - run: cd ritzbitz-link/dist/ && unzip *.zip && rm *.zip
       - uses: actions/upload-artifact@v4
         with:
           name: ritzbitz-link
